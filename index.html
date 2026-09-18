@@ -11,7 +11,7 @@
         button { width: 95%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
         button:hover { background: #218838; }
         .result { margin-top: 20px; text-align: left; background: #e9ecef; padding: 15px; border-radius: 5px; display: none; }
-        .error { color: red; margin-top: 10px; display: none; }
+        .error { color: red; margin-top: 10px; display: none; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -47,35 +47,30 @@ async function checkTraffic() {
         return;
     }
 
-    // CORS বাইপাস করার জন্য ফ্রি প্রক্সি সার্ভিস
-    const corsProxy = 'https://corsproxy.io/?';
-
     try {
-        // Step 1: Login
-        const loginUrl = corsProxy + encodeURIComponent('https://www.ipcook.com/api/account/login');
-        const loginRes = await fetch(loginUrl, {
+        // Step 1: Login Using Form URL Encoded Payload
+        const loginParams = new URLSearchParams();
+        loginParams.append('account', account);
+        loginParams.append('password', password);
+
+        const loginRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.ipcook.com/api/account/login'), {
             method: 'POST',
             headers: { 
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({ 
-                account: account,
-                username: account,
-                password: password 
-            })
+            body: loginParams.toString()
         });
 
         const loginData = await loginRes.json();
 
-        if (loginData.code !== 0) {
-            throw new Error(loginData.msg || "Login failed");
+        if (!loginData || loginData.code !== 0) {
+            throw new Error(loginData.msg || "Login failed. Check Credentials.");
         }
 
         const jwtToken = loginData.data['jwt-token'];
 
-        // Step 2: Fetch User Info
-        const infoUrl = corsProxy + encodeURIComponent('https://www.ipcook.com/api/user/info');
-        const infoRes = await fetch(infoUrl, {
+        // Step 2: Fetch User Info using Authorization Header
+        const infoRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.ipcook.com/api/user/info'), {
             method: 'GET',
             headers: { 
                 'Authorization': 'Bearer ' + jwtToken 
@@ -83,7 +78,7 @@ async function checkTraffic() {
         });
         const infoData = await infoRes.json();
 
-        if (infoData.code === 0) {
+        if (infoData && infoData.code === 0) {
             const data = infoData.data;
             document.getElementById('resAccount').innerText = data.account;
             document.getElementById('resTraffic').innerText = data.traffic_left;
