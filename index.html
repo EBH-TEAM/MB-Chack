@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPCook Traffic Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; text-align: center; }
+        .card { background: white; max-width: 400px; margin: 0 auto; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 95%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #218838; }
+        .result { margin-top: 20px; text-align: left; background: #e9ecef; padding: 15px; border-radius: 5px; display: none; }
+        .error { color: red; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>IPCook Traffic Checker</h2>
+    <input type="text" id="account" placeholder="IPCook Email / Account" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button onclick="checkTraffic()">Check Balance</button>
+
+    <div id="errorMsg" class="error"></div>
+
+    <div id="resultBox" class="result">
+        <p><strong>Account:</strong> <span id="resAccount"></span></p>
+        <p><strong>Remaining Traffic:</strong> <span id="resTraffic"></span> MB (<span id="resTrafficGB"></span> GB)</p>
+        <p><strong>Account Balance:</strong> $<span id="resBalance"></span></p>
+    </div>
+</div>
+
+<script>
+async function checkTraffic() {
+    const account = document.getElementById('account').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errorDiv = document.getElementById('errorMsg');
+    const resultBox = document.getElementById('resultBox');
+
+    errorDiv.style.display = 'none';
+    resultBox.style.display = 'none';
+
+    if(!account || !password) {
+        errorDiv.innerText = "Please enter both Account and Password!";
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        // Form Data তৈরি করা হচ্ছে IPCook-এর প্যারামিটার অনুযায়ী
+        const formData = new URLSearchParams();
+        formData.append('account', account);
+        formData.append('password', password);
+
+        // Step 1: Login
+        const loginRes = await fetch('https://www.ipcook.com/api/account/login', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formData.toString()
+        });
+
+        const loginData = await loginRes.json();
+
+        if (loginData.code !== 0) {
+            throw new Error(loginData.msg || "Login failed");
+        }
+
+        const jwtToken = loginData.data['jwt-token'];
+
+        // Step 2: Fetch Info
+        const infoRes = await fetch('https://www.ipcook.com/api/user/info', {
+            method: 'GET',
+            headers: { 
+                'Authorization': jwtToken 
+            }
+        });
+        const infoData = await infoRes.json();
+
+        if (infoData.code === 0) {
+            const data = infoData.data;
+            document.getElementById('resAccount').innerText = data.account;
+            document.getElementById('resTraffic').innerText = data.traffic_left;
+            document.getElementById('resTrafficGB').innerText = (data.traffic_left / 1000).toFixed(2);
+            document.getElementById('resBalance').innerText = (data.balance / 100).toFixed(2);
+            
+            resultBox.style.display = 'block';
+        } else {
+            throw new Error(infoData.msg || "Failed to fetch traffic info");
+        }
+
+    } catch (err) {
+        errorDiv.innerText = "Error: " + err.message;
+        errorDiv.style.display = 'block';
+    }
+}
+</script>
+
+</body>
+</html>
