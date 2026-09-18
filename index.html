@@ -47,19 +47,22 @@ async function checkTraffic() {
         return;
     }
 
-    try {
-        // Form Data তৈরি করা হচ্ছে IPCook-এর প্যারামিটার অনুযায়ী
-        const formData = new URLSearchParams();
-        formData.append('account', account);
-        formData.append('password', password);
+    // CORS বাইপাস করার জন্য ফ্রি প্রক্সি সার্ভিস
+    const corsProxy = 'https://corsproxy.io/?';
 
+    try {
         // Step 1: Login
-        const loginRes = await fetch('https://www.ipcook.com/api/account/login', {
+        const loginUrl = corsProxy + encodeURIComponent('https://www.ipcook.com/api/account/login');
+        const loginRes = await fetch(loginUrl, {
             method: 'POST',
             headers: { 
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/json'
             },
-            body: formData.toString()
+            body: JSON.stringify({ 
+                account: account,
+                username: account,
+                password: password 
+            })
         });
 
         const loginData = await loginRes.json();
@@ -70,11 +73,12 @@ async function checkTraffic() {
 
         const jwtToken = loginData.data['jwt-token'];
 
-        // Step 2: Fetch Info
-        const infoRes = await fetch('https://www.ipcook.com/api/user/info', {
+        // Step 2: Fetch User Info
+        const infoUrl = corsProxy + encodeURIComponent('https://www.ipcook.com/api/user/info');
+        const infoRes = await fetch(infoUrl, {
             method: 'GET',
             headers: { 
-                'Authorization': jwtToken 
+                'Authorization': 'Bearer ' + jwtToken 
             }
         });
         const infoData = await infoRes.json();
