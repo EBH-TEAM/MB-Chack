@@ -1,100 +1,315 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPCook Traffic Checker</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; text-align: center; }
-        .card { background: white; max-width: 400px; margin: 0 auto; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { width: 95%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #218838; }
-        .result { margin-top: 20px; text-align: left; background: #e9ecef; padding: 15px; border-radius: 5px; display: none; }
-        .error { color: red; margin-top: 10px; display: none; word-break: break-all; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Free Proxy — OwllProxy</title>
+<link rel="icon" type="image/png" href="/assets/img/logo.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.wrap{width:100%;max-width:440px}
+.card{background:#1e293b;border-radius:20px;padding:26px 20px;border:1px solid #334155;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+h1{font-size:1.4rem;text-align:center;margin-bottom:6px}
+.sub{text-align:center;color:#94a3b8;font-size:.83rem;margin-bottom:20px}
+input,select,button{width:100%;padding:12px 14px;border-radius:11px;font-size:.95rem;border:1px solid #334155;background:#0f172a;color:#e2e8f0;margin-bottom:11px;font-family:inherit;-webkit-appearance:none;appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+input:focus,select:focus{outline:2px solid #6366f1;border-color:#6366f1}
+button{background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;color:#fff;font-weight:700;cursor:pointer;transition:transform .15s}
+button:hover:not(:disabled){transform:translateY(-2px)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.hidden{display:none!important}
+.msg{padding:11px;border-radius:10px;font-size:.84rem;margin-bottom:12px;text-align:center;line-height:1.5}
+.msg.ok{background:#064e3b;color:#6ee7b7}
+.msg.err{background:#7f1d1d;color:#fca5a5}
+.msg.warn{background:#78350f;color:#fcd34d}
+.info{display:flex;justify-content:space-between;align-items:center;background:#0f172a;border:1px solid #334155;border-radius:11px;padding:11px 14px;margin-bottom:12px;font-size:.84rem}
+.info b{color:#7ee2a8}
+.lines{background:#0f172a;border:1px solid #334155;border-radius:11px;padding:13px;font-family:'Courier New',monospace;font-size:.76rem;white-space:pre-wrap;word-break:break-all;max-height:220px;overflow-y:auto;margin:10px 0;color:#7ee2a8;line-height:1.75}
+.row{display:flex;gap:8px}
+.row button{margin-bottom:0}
+label{display:block;font-size:.78rem;color:#94a3b8;margin-bottom:5px;font-weight:600}
+small{color:#64748b;font-size:.72rem;display:block;text-align:center;margin-top:12px}
+.chip{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+.chip.ok{background:#22c55e22;color:#4ade80}
+.chip.bad{background:#ef444422;color:#f87171}
+.chip.wait{background:#f59e0b22;color:#fbbf24}
+</style>
 </head>
 <body>
 
-<div class="card">
-    <h2>IPCook Traffic Checker</h2>
-    <input type="text" id="account" placeholder="IPCook Email / Account" required>
-    <input type="password" id="password" placeholder="Password" required>
-    <button onclick="checkTraffic()">Check Balance</button>
+<div class="wrap">
 
-    <div id="errorMsg" class="error"></div>
+  <!-- লগইন -->
+  <div id="loginView" class="card">
+    <h1>🔐 লগইন</h1>
+    <p class="sub">যেকোনো নাম দিয়ে ঢুকে পড়ুন</p>
+    <input id="username" placeholder="যেকোনো অক্ষর / নাম" autocomplete="off">
+    <button id="loginBtn">🚀 ঢুকে পড়ুন</button>
+    <small>ইমেইল/পাসওয়ার্ড লাগবে না</small>
+  </div>
 
-    <div id="resultBox" class="result">
-        <p><strong>Account:</strong> <span id="resAccount"></span></p>
-        <p><strong>Remaining Traffic:</strong> <span id="resTraffic"></span> MB (<span id="resTrafficGB"></span> GB)</p>
-        <p><strong>Account Balance:</strong> $<span id="resBalance"></span></p>
+  <!-- মেইন -->
+  <div id="mainView" class="hidden">
+    <div class="card">
+      <h1>🎁 ফ্রি প্রক্সি</h1>
+      <p class="sub">আসল লাইন — গেটওয়ে থেকে সরাসরি</p>
+
+      <div id="statusMsg" class="msg hidden"></div>
+
+      <div class="info">
+        <span>💾 বাকি MB</span>
+        <b id="mbBadge">— MB</b>
+      </div>
+
+      <label>🌍 দেশ বেছে নিন</label>
+      <select id="countrySel"></select>
+
+      <button id="claimBtn">⚡ ফ্রি লাইন নিন</button>
+
+      <div id="linesBox" class="hidden">
+        <div class="lines" id="linesOut"></div>
+        <div id="lineChip" style="text-align:center;margin-bottom:8px"></div>
+        <div class="row">
+          <button id="copyBtn" style="background:linear-gradient(135deg,#10b981,#059669)">📋 কপি</button>
+          <button id="testBtn" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">⚡ টেস্ট</button>
+        </div>
+      </div>
+
+      <button id="logoutBtn" style="margin-top:14px;background:#334155">🚪 লগআউট</button>
     </div>
+  </div>
+
 </div>
 
 <script>
-async function checkTraffic() {
-    const account = document.getElementById('account').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorDiv = document.getElementById('errorMsg');
-    const resultBox = document.getElementById('resultBox');
+/* ═══════════════════════════════════════════════════════════════
+   OwllProxy — Free Proxy (এক ফাইল, পুরো কমপ্লিট)
+   আপনার আসল স্ক্রিপ্টের কানেকশন লজিক:
+   /api/me · /api/gateway · /api/extract · /api/proxy/check
+   ═══════════════════════════════════════════════════════════════ */
 
-    errorDiv.style.display = 'none';
-    resultBox.style.display = 'none';
+const $ = id => document.getElementById(id);
 
-    if(!account || !password) {
-        errorDiv.innerText = "Please enter both Account and Password!";
-        errorDiv.style.display = 'block';
-        return;
-    }
+let U = null, GW = null, LAST_DYN = [], FREE_MB = 200, USER = null;
 
+/* ─────── API wrapper ─────── */
+const API = {
+  async call(method, url, body) {
+    const opt = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin' };
+    if (body !== undefined) opt.body = JSON.stringify(body);
     try {
-        // Step 1: Login Using Form URL Encoded Payload
-        const loginParams = new URLSearchParams();
-        loginParams.append('account', account);
-        loginParams.append('password', password);
-
-        const loginRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.ipcook.com/api/account/login'), {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: loginParams.toString()
-        });
-
-        const loginData = await loginRes.json();
-
-        if (!loginData || loginData.code !== 0) {
-            throw new Error(loginData.msg || "Login failed. Check Credentials.");
-        }
-
-        const jwtToken = loginData.data['jwt-token'];
-
-        // Step 2: Fetch User Info using Authorization Header
-        const infoRes = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://www.ipcook.com/api/user/info'), {
-            method: 'GET',
-            headers: { 
-                'Authorization': 'Bearer ' + jwtToken 
-            }
-        });
-        const infoData = await infoRes.json();
-
-        if (infoData && infoData.code === 0) {
-            const data = infoData.data;
-            document.getElementById('resAccount').innerText = data.account;
-            document.getElementById('resTraffic').innerText = data.traffic_left;
-            document.getElementById('resTrafficGB').innerText = (data.traffic_left / 1000).toFixed(2);
-            document.getElementById('resBalance').innerText = (data.balance / 100).toFixed(2);
-            
-            resultBox.style.display = 'block';
-        } else {
-            throw new Error(infoData.msg || "Failed to fetch traffic info");
-        }
-
-    } catch (err) {
-        errorDiv.innerText = "Error: " + err.message;
-        errorDiv.style.display = 'block';
+      const r = await fetch(url, opt);
+      let data = {};
+      try { data = await r.json(); } catch (e) {}
+      if (r.status === 401) window.dispatchEvent(new Event('np:unauthorized'));
+      return { status: r.status, data };
+    } catch (e) {
+      return { status: 0, data: { error: 'Network error: ' + e.message } };
     }
+  },
+  get(u) { return this.call('GET', u); },
+  post(u, b) { return this.call('POST', u, b); }
+};
+
+/* ─────── সব দেশ (আপনার আসল CNAMES) ─────── */
+const CNAMES = {
+'Global':'Global','AD':'Andorra','AE':'UAE','AF':'Afghanistan','AG':'Antigua','AI':'Anguilla','AL':'Albania','AM':'Armenia','AO':'Angola','AR':'Argentina','AS':'American Samoa','AT':'Austria','AU':'Australia','AW':'Aruba','AX':'Åland Islands','AZ':'Azerbaijan','BA':'Bosnia','BB':'Barbados','BD':'Bangladesh','BE':'Belgium','BF':'Burkina Faso','BG':'Bulgaria','BH':'Bahrain','BI':'Burundi','BJ':'Benin','BL':'Saint Barthélemy','BM':'Bermuda','BN':'Brunei','BO':'Bolivia','BQ':'Bonaire','BR':'Brazil','BS':'Bahamas','BT':'Bhutan','BV':'Bouvet Island','BW':'Botswana','BY':'Belarus','BZ':'Belize','CA':'Canada','CC':'Cocos Islands','CD':'DR Congo','CF':'Central African Republic','CG':'Congo','CH':'Switzerland','CI':'Ivory Coast','CK':'Cook Islands','CL':'Chile','CM':'Cameroon','CN':'China','CO':'Colombia','CR':'Costa Rica','CU':'Cuba','CV':'Cabo Verde','CW':'Curaçao','CX':'Christmas Island','CY':'Cyprus','CZ':'Czechia','DE':'Germany','DJ':'Djibouti','DK':'Denmark','DM':'Dominica','DO':'Dominican Republic','DZ':'Algeria','EC':'Ecuador','EE':'Estonia','EG':'Egypt','EH':'Western Sahara','ER':'Eritrea','ES':'Spain','ET':'Ethiopia','FI':'Finland','FJ':'Fiji','FK':'Falkland Islands','FM':'Micronesia','FO':'Faroe Islands','FR':'France','GA':'Gabon','GB':'United Kingdom','GD':'Grenada','GE':'Georgia','GF':'French Guiana','GG':'Guernsey','GH':'Ghana','GI':'Gibraltar','GL':'Greenland','GM':'Gambia','GN':'Guinea','GP':'Guadeloupe','GQ':'Equatorial Guinea','GR':'Greece','GS':'South Georgia','GT':'Guatemala','GU':'Guam','GW':'Guinea-Bissau','GY':'Guyana','HK':'Hong Kong','HM':'Heard Island','HN':'Honduras','HR':'Croatia','HT':'Haiti','HU':'Hungary','ID':'Indonesia','IE':'Ireland','IL':'Israel','IM':'Isle of Man','IN':'India','IO':'British Indian Ocean','IQ':'Iraq','IR':'Iran','IS':'Iceland','IT':'Italy','JE':'Jersey','JM':'Jamaica','JO':'Jordan','JP':'Japan','KE':'Kenya','KG':'Kyrgyzstan','KH':'Cambodia','KI':'Kiribati','KM':'Comoros','KN':'Saint Kitts','KP':'North Korea','KR':'South Korea','KW':'Kuwait','KY':'Cayman Islands','KZ':'Kazakhstan','LA':'Laos','LB':'Lebanon','LC':'Saint Lucia','LI':'Liechtenstein','LK':'Sri Lanka','LR':'Liberia','LS':'Lesotho','LT':'Lithuania','LU':'Luxembourg','LV':'Latvia','LY':'Libya','MA':'Morocco','MC':'Monaco','MD':'Moldova','ME':'Montenegro','MF':'Saint Martin','MG':'Madagascar','MH':'Marshall Islands','MK':'North Macedonia','ML':'Mali','MM':'Myanmar','MN':'Mongolia','MO':'Macau','MP':'Northern Mariana','MQ':'Martinique','MR':'Mauritania','MS':'Montserrat','MT':'Malta','MU':'Mauritius','MV':'Maldives','MW':'Malawi','MX':'Mexico','MY':'Malaysia','MZ':'Mozambique','NA':'Namibia','NC':'New Caledonia','NE':'Niger','NF':'Norfolk Island','NG':'Nigeria','NI':'Nicaragua','NL':'Netherlands','NO':'Norway','NP':'Nepal','NR':'Nauru','NU':'Niue','NZ':'New Zealand','OM':'Oman','PA':'Panama','PE':'Peru','PF':'French Polynesia','PG':'Papua New Guinea','PH':'Philippines','PK':'Pakistan','PL':'Poland','PM':'Saint Pierre','PN':'Pitcairn','PR':'Puerto Rico','PS':'Palestine','PT':'Portugal','PW':'Palau','PY':'Paraguay','QA':'Qatar','RE':'Réunion','RO':'Romania','RS':'Serbia','RU':'Russia','RW':'Rwanda','SA':'Saudi Arabia','SB':'Solomon Islands','SC':'Seychelles','SD':'Sudan','SE':'Sweden','SG':'Singapore','SH':'Saint Helena','SI':'Slovenia','SJ':'Svalbard','SK':'Slovakia','SL':'Sierra Leone','SM':'San Marino','SN':'Senegal','SO':'Somalia','SR':'Suriname','SS':'South Sudan','ST':'São Tomé','SV':'El Salvador','SX':'Sint Maarten','SY':'Syria','SZ':'Eswatini','TC':'Turks and Caicos','TD':'Chad','TF':'French Southern Territories','TG':'Togo','TH':'Thailand','TJ':'Tajikistan','TK':'Tokelau','TL':'Timor-Leste','TM':'Turkmenistan','TN':'Tunisia','TO':'Tonga','TR':'Turkey','TT':'Trinidad and Tobago','TV':'Tuvalu','TW':'Taiwan','TZ':'Tanzania','UA':'Ukraine','UG':'Uganda','UM':'US Minor Outlying','US':'United States','UY':'Uruguay','UZ':'Uzbekistan','VA':'Vatican City','VC':'Saint Vincent','VE':'Venezuela','VG':'British Virgin Islands','VI':'US Virgin Islands','VN':'Vietnam','VU':'Vanuatu','WF':'Wallis and Futuna','WS':'Samoa','XK':'Kosovo','YE':'Yemen','YT':'Mayotte','ZA':'South Africa','ZM':'Zambia','ZW':'Zimbabwe'
+};
+
+function flagOf(c) {
+  const s = String(c || '').toUpperCase();
+  if (s === 'GLOBAL' || s === 'ALL') return '🌍';
+  if (!/^[A-Z]{2}$/.test(s)) return '🌐';
+  return String.fromCodePoint(...[...s].map(ch => 0x1F1E6 - 65 + ch.charCodeAt(0)));
 }
+
+/* ─────── আসল helper ─────── */
+function pxHost(px) { return px.host || px.ip || (GW && GW.host) || 'gateway-not-configured'; }
+
+function fmtLine(px, f) {
+  const h = pxHost(px), p = px.port, u = px.user, w = px.pass;
+  const pr = px.protocol || 'socks5';
+  if (f === 'hp') return `${h}:${p}`;
+  if (f === 'up') return `${u}:${w}@${h}:${p}`;
+  if (f === 'url') return `${pr}://${u}:${w}@${h}:${p}`;
+  if (f === 'http') return `http://${u}:${w}@${h}:${p}`;
+  if (f === 'json') return JSON.stringify({ host: h, port: p, username: u, password: w, protocol: pr, session: px.session || null, country: px.country || null, expiresAt: px.expiresAt || null }, null, 0);
+  return `${h}:${p}:${u}:${w}`;
+}
+
+function hasQuota() {
+  if (!U) return false;
+  if (window.__claimedOnce === true) return true;
+  if (U.role === 'admin') return true;
+  if (U.claimedTrial) { window.__claimedOnce = true; return true; }
+  if (U.quota && U.quota.exhausted === false) { window.__claimedOnce = true; return true; }
+  if (U.quota && typeof U.quota.leftMB === 'number' && U.quota.leftMB > 0.001) { window.__claimedOnce = true; return true; }
+  if (U.quota && U.quota.enforced === false) { window.__claimedOnce = true; return true; }
+  if (typeof U.trafficGB === 'number' && U.trafficGB > 0) { window.__claimedOnce = true; return true; }
+  if (typeof U.balanceMB === 'number' && U.balanceMB > 0) { window.__claimedOnce = true; return true; }
+  return false;
+}
+
+/* ─────── লগইন (যেকোনো অক্ষর) ─────── */
+$('loginBtn').onclick = async () => {
+  const name = $('username').value.trim();
+  if (!name) { alert('একটা অক্ষর তো লিখুন!'); return; }
+  USER = { name, id: 'u_' + Math.random().toString(36).slice(2, 8) };
+  localStorage.setItem('fp_user', JSON.stringify(USER));
+  if (!localStorage.getItem('fp_mb_' + USER.id)) {
+    localStorage.setItem('fp_mb_' + USER.id, FREE_MB);
+  }
+  await bootMain();
+};
+
+$('logoutBtn').onclick = () => {
+  localStorage.removeItem('fp_user');
+  USER = null;
+  $('mainView').classList.add('hidden');
+  $('loginView').classList.remove('hidden');
+};
+
+/* ─────── দেশ লোড ─────── */
+function fillCountries() {
+  const sel = $('countrySel');
+  sel.innerHTML = '';
+  Object.entries(CNAMES).forEach(([c, name]) => {
+    const o = document.createElement('option');
+    o.value = c;
+    o.textContent = `${flagOf(c)} ${c} — ${name}`;
+    sel.appendChild(o);
+  });
+  sel.value = 'PK';
+}
+
+/* ─────── মেইন বুট ─────── */
+async function bootMain() {
+  $('loginView').classList.add('hidden');
+  $('mainView').classList.remove('hidden');
+  fillCountries();
+  loadMB();
+
+  const r = await API.get('/api/me');
+  if (r.status === 200 && r.data && r.data.user) {
+    U = r.data.user;
+    if (U.quota && U.quota.leftMB != null) {
+      localStorage.setItem('fp_mb_' + USER.id, Math.round(U.quota.leftMB));
+      loadMB();
+    }
+  }
+
+  try {
+    const gr = await API.get('/api/gateway');
+    if (gr.status === 200 && gr.data && gr.data.gateway) GW = gr.data.gateway;
+  } catch (e) {}
+}
+
+function loadMB() {
+  const mb = Number(localStorage.getItem('fp_mb_' + USER.id) || FREE_MB);
+  $('mbBadge').textContent = mb + ' MB';
+}
+
+function setMsg(text, type) {
+  const el = $('statusMsg');
+  el.textContent = text;
+  el.className = 'msg ' + (type || 'ok');
+  el.classList.remove('hidden');
+}
+
+/* ─────── আসল /api/extract কল ─────── */
+$('claimBtn').onclick = async () => {
+  const btn = $('claimBtn');
+  const country = $('countrySel').value;
+  const haveMB = Number(localStorage.getItem('fp_mb_' + USER.id) || FREE_MB);
+
+  if (haveMB <= 0) {
+    setMsg('❌ MB শেষ — সব ফ্রি MB ব্যবহার হয়ে গেছে', 'err');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ লাইন আনা হচ্ছে…';
+
+  const r = await API.post('/api/extract', {
+    country: country,
+    protocol: 'socks5',
+    qty: 1,
+    format: 'hpu',
+    rotation: '30min',
+    type: 'dc'
+  });
+
+  if (r.status === 200 && r.data && r.data.items && r.data.items.length) {
+    LAST_DYN = r.data.items;
+    GW = r.data.gateway || GW;
+    if (r.data.user) U = r.data.user;
+
+    const lines = LAST_DYN.map(p => fmtLine(p, 'hpu')).join('\n');
+    $('linesBox').classList.remove('hidden');
+    $('linesOut').textContent = lines;
+
+    const cc = (LAST_DYN[0].country || country || '').toUpperCase();
+    $('lineChip').innerHTML = '<span class="chip ok">● live · ' + flagOf(cc) + ' ' + cc + '</span>';
+
+    const newMB = U.quota && U.quota.leftMB != null ? Math.round(U.quota.leftMB) : Math.max(0, haveMB - 200);
+    localStorage.setItem('fp_mb_' + USER.id, newMB);
+    loadMB();
+
+    setMsg('✅ ' + cc + ' লাইন পাওয়া গেছে — কানেক্ট করার জন্য তৈরি!', 'ok');
+    autoCheck(LAST_DYN[0]);
+  } else if (r.status === 402) {
+    setMsg('❌ ' + (r.data.error || 'MB limit reached'), 'err');
+  } else if (r.data && r.data.code === 'no_gateway') {
+    GW = r.data.gateway || GW;
+    setMsg('❌ ' + (r.data.error || 'No live gateway'), 'err');
+  } else {
+    setMsg('❌ ' + ((r.data && r.data.error) || 'সার্ভার পাওয়া যায়নি — সাইটে ঢুকে চেষ্টা করুন'), 'err');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⚡ আরেকটা লাইন নিন';
+};
+
+/* ─────── আসল /api/proxy/check কল ─────── */
+async function autoCheck(px) {
+  const chip = $('lineChip');
+  chip.innerHTML = '<span class="chip wait">⏳ টেস্ট হচ্ছে…</span>';
+  const r = await API.post('/api/proxy/check', {
+    id: px.id,
+    host: pxHost(px),
+    port: Number(px.port || (GW && GW.port) || 0),
+    user: px.user || '',
+    pass: px.pass || '',
+    protocol: px.protocol || (GW && GW.scheme) || 'socks5'
+  });
+  if (r.status === 200 && r.data && r.data.check) {
+    const c = r.data.check;
+    if (c.ok) {
+      chip.innerHTML = '<span class="chip ok">✓ কানেক্টেড' + (c.ms ? ' · ' + c.ms + 'ms' : '') + (c.exitCountry ? ' · ' + c.exitCountry : '') + '</span>';
+    } else {
+      chip.innerHTML = '<span class="chip bad">✗ ' + (c.detail || 'ফেইল') + '</span>';
+    }
+  } else {
+    chip.innerHTML = '<span class="chip bad">✗ টেস্ট ফেইল</span>';
+  }
+}
+
+/* ─────── কপি ─────── */
+$('copyBtn').onclick = () => {
+  navigator.clipboard.writeText($('linesOut').textContent);
+  setMsg('📋 কপি হয়ে গেছে!', 'ok');
+};
+
+$('testBtn').onclick = () => { if (LAST_DYN.length) autoCheck(LAST_DYN[0]); };
+
+/* ─────── বুট ─────── */
+(async function boot() {
+  const saved = localStorage.getItem('fp_user');
+  if (saved) {
+    try { USER = JSON.parse(saved); await bootMain(); } catch (e) {}
+  }
+})();
 </script>
 
 </body>
